@@ -42,16 +42,16 @@ export default function InventoryApp() {
     const [error, setError] = useState<string | null>(null);
     const [editItem,setEditItem] = useState<Item | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [snackbar, setSnackbar] = useState({open: false, message: "", severity: "success" as "success" | "error" | "info" | "warning"});
-    const [search, setSearch] = useState("");
+    const [, setSnackbar] = useState({open: false, message: "", severity: "success" as "success" | "error" | "info" | "warning"});
+    // const [search, setSearch] = useState("");
     
 useEffect(() => {
     loadInventory();
 }, []);
 
-useEffect(() => {
-    filterInventory();
-}, [items, search]);
+// useEffect(() => {
+//     filterInventory();
+// }, [items, search]);
 
 const loadInventory = async () => {
     try{
@@ -65,13 +65,13 @@ const loadInventory = async () => {
     }
 }
 
-const filterInventory = () => {
-    let filteredItems = items
-    if(search){
-        filteredItems = items.filter(item => item.name.toLowerCase().includes(search.toLowerCase()))
-    }
-    setItems(filteredItems)
-}
+// const filterInventory = () => {
+//     let filteredItems = items
+//     if(search){
+//         filteredItems = items.filter(item => item.name.toLowerCase().includes(search.toLowerCase()))
+//     }
+//     setItems(filteredItems)
+// }
 
 const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
