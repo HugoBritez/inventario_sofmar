@@ -1,11 +1,13 @@
 
 import React, {useState, useEffect} from "react";
+import CompareIcon from '@mui/icons-material/Compare';
 
 
 interface Item {
     id: number;
     name: string;
     quantity: number;
+    barcode?:string;
 }
 
 // api functions
@@ -45,14 +47,30 @@ export default function InventoryApp() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [, setSnackbar] = useState({open: false, message: "", severity: "success" as "success" | "error" | "info" | "warning"});
     const [search, setSearch] = useState("");
+    const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [isMobile, setIsmobile] = useState(false);
+    const barcodeInputRef = React.useRef<HTMLInputElement>(null);
     
 useEffect(() => {
     loadInventory();
+    checkDeviceType();
 }, []);
 
 useEffect (() => {
   filterInventory()
 }, [items, search]);
+
+useEffect(() => {
+  if(!isMobile && barcodeInputRef.current){
+    barcodeInputRef.current.focus();
+  }
+}
+, [isMobile, isDialogOpen])
+
+const checkDeviceType = () => {
+  setIsmobile(window.innerWidth < 768)
+}
+
 
 const loadInventory = async () => {
     try{
@@ -71,19 +89,33 @@ const filterInventory = () => {
   setFilteredItems(filteredItems)
 }
 
+const handleBarcodeDetected = (code: string) => {
+  setIsScannerOpen(false);
+  const item = items.find(item => item.barcode === code);
+  if(item){
+    setEditItem(item);
+  }else{
+    setEditItem({id: 0, name:code, quantity: 1, barcode: code})
+  }
+  setIsDialogOpen(true);
+  };
+
+
+
 const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData= new FormData(e.currentTarget)
     const name = formData.get('name') as string
     const quantity = Number(formData.get('quantity'))
+    const barcode = formData.get('barcode') as string
 
 
     if (name && quantity>0){
         if(editItem){
-            await api.updateItem( {...editItem, name, quantity})
+            await api.updateItem( {...editItem, name, quantity, barcode})
             setSnackbar({open: true, message: "Item actualizado", severity: "success"})
         }else{
-            await api.addItem({name, quantity})
+            await api.addItem({name, quantity, barcode})
             setSnackbar({open: true, message: "Item creado", severity: "success"})
         }
         loadInventory()
@@ -138,8 +170,10 @@ return (
     )}
     <div>
       <input type="search" placeholder="Buscar" className="border rounded-md h-8" value={search} onChange={(e) => setSearch(e.target.value)} />
-      
+      <button
+        onClick={()=> setIsScannerOpen(true)}><CompareIcon/></button>
     </div>
+    
     <div className="mt-8 bg-white p-8 w-5/6 shadow-md rounded-lg" >
       {filteredItems.map((item: Item) => (
         <div>
